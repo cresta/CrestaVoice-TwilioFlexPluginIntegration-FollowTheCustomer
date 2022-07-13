@@ -1,0 +1,80 @@
+// Initiate a Twilio Media Stream with Parameters
+// Version 1.0
+// REQUIRED: CRESTA_TOKEN configured as Environmental Parameter (Enviromental Parameters of your Twilio Functio Service)
+// REQUIRED: Passing in agentId (POST or GET)
+// REQUIRED: Passing in callId (POST or GET)
+// Edit the Websocket URL parameter below, to match your unique Cresta provided websocket URL
+
+const TokenValidator = require('twilio-flex-token-validator').functionValidator;
+
+exports.handler = TokenValidator(function(context, event, callback) {
+
+  const url = 'wss://faa3-107-145-228-172.ngrok.io'; // CHANGE ME!, make sure to use wss:// scheme
+  
+  const client = context.getTwilioClient();
+  const response = new Twilio.Response();
+
+  response
+    .appendHeader('Access-Control-Allow-Origin', '*')
+    .appendHeader('Access-Control-Allow-Methods', 'OPTIONS, POST, GET')
+    .appendHeader('Access-Control-Allow-Headers', 'Content-Type')
+    .appendHeader('Content-Type', 'application/json');
+  
+  const { agentId = "", callId = "" } = event;
+  const CRESTA_TOKEN = context.CRESTA_TOKEN;
+
+  function errorCheck(CRESTA_TOKEN, agentId, callId) {
+
+  let error = 0;
+
+	if (CRESTA_TOKEN==="" || CRESTA_TOKEN===undefined || CRESTA_TOKEN===null ){
+	  console.log("REQUIRED: Missing Cresta token environmment variable.");
+	  error = 1;
+	}
+	if (agentId==="" || agentId===undefined || agentId===null){
+	  console.log("REQUIRED: Missing Cresta agentId");
+	  error = 1;
+	}
+  if (callId==="" || callId===undefined || callId===null){
+    console.log("REQUIRED: Missing callId");
+    error = 1;
+	}
+	return error
+  }
+
+  if (errorCheck(CRESTA_TOKEN, agentId, callId)) {
+      
+    response
+      .setBody({result: 'Missing Configuration Parameters. Check Console Log.'})
+      .setStatusCode(500);
+    return callback(null, response)
+  } else {
+    client.calls(callId)
+        .streams
+        .create({
+          name: `callId-${callId}`, // Format has to be different then a straight SID if you want to stop by name
+          track: 'both_tracks',
+          'parameter1.name': 'AgentId',
+          'parameter1.value': agentId,
+          'parameter2.name': 'Token',
+          'parameter2.value': context.CRESTA_TOKEN,
+          'parameter3.name': 'CallId',
+          'parameter3.value': callId,
+          url: url
+        })
+        .then(stream => {
+          console.log(`The streamSid: ${stream.sid}`);
+          response
+            .setBody({result: stream.sid})
+            .setStatusCode(200);
+          return callback(null, response);
+        })
+        .catch(error => {
+          console.log(error);
+          response
+            .setStatusCode(500)
+            .setBody({result: error});
+          return callback(null, response);
+        })
+  }
+});

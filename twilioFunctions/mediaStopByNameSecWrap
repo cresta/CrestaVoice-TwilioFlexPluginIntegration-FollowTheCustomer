@@ -1,0 +1,53 @@
+// Stop a Twilio Media Stream by Name
+// Version 1.0
+// REQUIRED: Passing in callId (POST or GET)
+
+const TokenValidator = require('twilio-flex-token-validator').functionValidator;
+
+exports.handler = TokenValidator(function(context, event, callback) {
+
+  const client = context.getTwilioClient();
+  const response = new Twilio.Response();
+
+  response
+    .appendHeader('Access-Control-Allow-Origin', '*')
+    .appendHeader('Access-Control-Allow-Methods', 'OPTIONS, POST, GET')
+    .appendHeader('Access-Control-Allow-Headers', 'Content-Type')
+    .appendHeader('Content-Type', 'application/json');
+
+  const { callId = "" } = event;
+
+  function errorCheck(callId) {
+
+    let error = 0;
+
+    if (callId==="" || callId===undefined || callId===null){
+      console.log("REQUIRED: Missing callId");
+    error = 1;
+    }
+
+    console.log(`Error from Error Check: ${error}`)
+    return error
+  }
+
+  if (errorCheck(callId)) {
+      response
+        .setStatusCode(500)
+        .setBody({result: "Missing Parameters - View Console Log of Function"})
+      return callback(null, response);
+  } else {
+      client.calls(callId)
+        .streams(`callId-${callId}`) // prefix with callId string (since it doesn't like the straight SID format)
+        .update({status: 'stopped'})
+        .then(stream => {
+          console.log(`Ending Stream Named: ${stream}`);
+          response.setBody ({result: stream.sid});
+          return callback(null, response);
+        })
+      .catch(error => {
+        console.log(JSON.stringify(error));
+        response.setBody({result: error});
+        return callback(null, response);
+      })
+  }
+});
