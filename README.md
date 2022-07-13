@@ -16,7 +16,7 @@ The required events Cresta needs to be informed about are
 
 The Twilio Flex plugin will make a call to one Twilio Function to enable a Twilio Media Stream when a Task for an inbound voice call is accepted and one Twilio Function when that task goes into wrapup to end the media stream.
 
-###The following pre-work is required to customize the code for your environment
+### The following pre-work is required to customize the code for your environment
 
 #### Flex PlugIn
 1. For the Twilio Flex Plugin code, make sure to modify the Twilio Function URL’s to start and stop the media streams to the unique FQDN’s of the same Functions created in your unique Flex instance.
