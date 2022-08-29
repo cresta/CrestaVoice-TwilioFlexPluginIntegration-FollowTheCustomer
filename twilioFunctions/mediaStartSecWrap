@@ -1,15 +1,31 @@
-// Initiate a Twilio Media Stream with Parameters
-// Version 1.0
-// REQUIRED: CRESTA_TOKEN configured as Environmental Parameter (Enviromental Parameters of your Twilio Functio Service)
-// REQUIRED: Passing in agentId (POST or GET)
-// REQUIRED: Passing in callId (POST or GET)
-// Edit the Websocket URL parameter below, to match your unique Cresta provided websocket URL
+/* 
+
+Initiate a Twilio Media Stream with Parameters
+
+Version 1.0.1
+REQUIRED: CRESTA_TOKEN configured as Environmental Parameter (Environmental Parameters of your Twilio Function Service)
+REQUIRED: Passing in agentId (POST or GET)
+REQUIRED: Passing in callId (POST or GET)
+Edit the Websocket URL parameter below, to match your unique Cresta provided websocket URL
+
+Changes 
+
+1.0.1 Release
+
+We will concatenate the callSid with a dash delimiter + ms since 1970, to allow transfer scenarios
+if the Twilio callSid is used as the unique callId identifier. Duplicate callIds per Cresta transcription
+are not allowed and happen when transfering a call. 
+
+Code Snippet change:  'parameter3.value': callId + '-' + new Date().getTime() 
+
+*/
 
 const TokenValidator = require('twilio-flex-token-validator').functionValidator;
 
 exports.handler = TokenValidator(function(context, event, callback) {
 
-  const url = 'wss://faa3-107-145-228-172.ngrok.io'; // CHANGE ME!, make sure to use wss:// scheme
+  const url = "wss://" + context.NMG_WSS_URL;
+  console.log(`The Websocket URI is ${url}`);
   
   const client = context.getTwilioClient();
   const response = new Twilio.Response();
@@ -21,7 +37,7 @@ exports.handler = TokenValidator(function(context, event, callback) {
     .appendHeader('Content-Type', 'application/json');
   
   const { agentId = "", callId = "" } = event;
-  const CRESTA_TOKEN = context.CRESTA_TOKEN;
+  const CRESTA_TOKEN = context.NMG_CRESTA_TOKEN
 
   function errorCheck(CRESTA_TOKEN, agentId, callId) {
 
@@ -59,7 +75,7 @@ exports.handler = TokenValidator(function(context, event, callback) {
           'parameter2.name': 'Token',
           'parameter2.value': context.CRESTA_TOKEN,
           'parameter3.name': 'CallId',
-          'parameter3.value': callId,
+          'parameter3.value': callId + '-' + new Date().getTime(),
           url: url
         })
         .then(stream => {
