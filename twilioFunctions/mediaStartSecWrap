@@ -18,13 +18,15 @@ are not allowed and happen when transfering a call.
 
 Code Snippet change:  'parameter3.value': callId + '-' + new Date().getTime() 
 
+Added an environmental variable, CUSTOMER_WSS_URL
+
 */
 
 const TokenValidator = require('twilio-flex-token-validator').functionValidator;
 
 exports.handler = TokenValidator(function(context, event, callback) {
 
-  const url = "wss://" + context.NMG_WSS_URL;
+  const url = "wss://" + context.CUSTOMER_WSS_URL;
   console.log(`The Websocket URI is ${url}`);
   
   const client = context.getTwilioClient();
@@ -37,7 +39,7 @@ exports.handler = TokenValidator(function(context, event, callback) {
     .appendHeader('Content-Type', 'application/json');
   
   const { agentId = "", callId = "" } = event;
-  const CRESTA_TOKEN = context.NMG_CRESTA_TOKEN
+  const CRESTA_TOKEN = context.CUSTOMER_CRESTA_TOKEN
 
   function errorCheck(CRESTA_TOKEN, agentId, callId) {
 
