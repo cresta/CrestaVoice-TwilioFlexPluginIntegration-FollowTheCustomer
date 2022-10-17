@@ -2,13 +2,24 @@
 
 Initiate a Twilio Media Stream with Parameters
 
-Version 1.0.1
+Version 1.0.2
 REQUIRED: CRESTA_TOKEN configured as Environmental Parameter (Environmental Parameters of your Twilio Function Service)
 REQUIRED: Passing in agentId (POST or GET)
 REQUIRED: Passing in callId (POST or GET)
 Edit the Websocket URL parameter below, to match your unique Cresta provided websocket URL
 
 Changes 
+
+1.0.2 Release
+Modify the Twilio Media Stream Name structure, from:
+
+name: `callId-${callId}`
+
+to
+
+name: `${agentId}-${callId}`
+
+To address call transfer use cases, to prevent Media Stream name duplication
 
 1.0.1 Release
 
@@ -70,7 +81,7 @@ exports.handler = TokenValidator(function(context, event, callback) {
     client.calls(callId)
         .streams
         .create({
-          name: `callId-${callId}`, // Format has to be different then a straight SID if you want to stop by name
+          name: `${agentId}-${callId}`, // prefixed with agentId to prevent media stream name duplication
           track: 'both_tracks',
           'parameter1.name': 'AgentId',
           'parameter1.value': agentId,

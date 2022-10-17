@@ -1,6 +1,35 @@
-// Stop a Twilio Media Stream by Name
-// Version 1.0
-// REQUIRED: Passing in callId (POST or GET)
+/* 
+
+Stop a Twilio Media Stream by Name
+Version 1.0.1
+
+REQUIRED: Passing in agentId (POST or GET)
+REQUIRED: Passing in callId (POST or GET)
+
+Changes 
+
+1.0.1 Release
+
+Modify the Twilio Media Stream Name structure, from:
+
+name: `callId-${callId}`
+
+to
+
+name: `${agentId}-${callId}`
+
+To address call transfer use cases, to prevent Media Stream name duplication 
+
+Also send agentId into Twilio Function from Flex Plug-in
+
+From:
+const { callId = "" } = event;
+
+To:
+const { agentId = "", callId = "" } = event;
+
+
+*/
 
 const TokenValidator = require('twilio-flex-token-validator').functionValidator;
 
@@ -15,7 +44,7 @@ exports.handler = TokenValidator(function(context, event, callback) {
     .appendHeader('Access-Control-Allow-Headers', 'Content-Type')
     .appendHeader('Content-Type', 'application/json');
 
-  const { callId = "" } = event;
+  const { agentId = "", callId = "" } = event;
 
   function errorCheck(callId) {
 
@@ -37,7 +66,7 @@ exports.handler = TokenValidator(function(context, event, callback) {
       return callback(null, response);
   } else {
       client.calls(callId)
-        .streams(`callId-${callId}`) // prefix with callId string (since it doesn't like the straight SID format)
+        .streams(`${agentId}-${callId}`) // prefixed with agentId to prevent media stream name duplication
         .update({status: 'stopped'})
         .then(stream => {
           console.log(`Ending Stream Named: ${stream}`);

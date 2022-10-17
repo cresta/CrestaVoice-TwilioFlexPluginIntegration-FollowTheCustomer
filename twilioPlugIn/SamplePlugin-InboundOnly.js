@@ -1,3 +1,5 @@
+// Version 1.0.1
+
 import React from 'react';
 import { FlexPlugin } from '@twilio/flex-plugin';
 
@@ -60,6 +62,7 @@ export default class SamplePlugin extends FlexPlugin {
         reservation.on("wrapup", (reservation) => {
           console.log('**** CALLING FETCH TO END MEDIA ****')
           const body = {
+            agentId: manager.workerClient.name,
             callId: reservation.task.attributes.call_sid,
             Token: manager.store.getState().flex.session.ssoTokenPayload.token
           };
